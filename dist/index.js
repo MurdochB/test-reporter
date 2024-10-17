@@ -373,6 +373,7 @@ class TestReporter {
         let baseUrl = '';
         if (this.useActionsSummary) {
             const summary = (0, get_report_1.getReport)(results, { listSuites, listTests, baseUrl, onlySummary, useActionsSummary, badgeTitle });
+            core.setOutput('summary', summary);
             core.info('Summary content:');
             core.info(summary);
             await core.summary.addRaw(summary).write();
@@ -412,6 +413,33 @@ class TestReporter {
                 },
                 ...github.context.repo
             });
+            // from n-ryu:test-reporter
+            const { pull_request } = github.context.payload;
+            if (pull_request !== undefined && pull_request !== null) {
+                core.info(`Looking for existing test summary`);
+                const commentList = await this.octokit.rest.issues.listComments({
+                    ...github.context.repo,
+                    issue_number: pull_request.number
+                });
+                const targetId = commentList.data.find(el => el.body?.startsWith('# 🚀 TEST RESULT SUMMARY'))?.id;
+                if (targetId !== undefined) {
+                    core.info(`Updating test summary as comment on pull-request`);
+                    await this.octokit.rest.issues.updateComment({
+                        ...github.context.repo,
+                        issue_number: pull_request.number,
+                        comment_id: targetId,
+                        body: `# 🚀 TEST RESULT SUMMARY ${summary}`
+                    });
+                }
+                else {
+                    core.info(`Attaching test summary as comment on pull-request`);
+                    await this.octokit.rest.issues.createComment({
+                        ...github.context.repo,
+                        issue_number: pull_request.number,
+                        body: `# 🚀 TEST RESULT SUMMARY ${summary}`
+                    });
+                }
+            }
             core.info(`Check run create response: ${resp.status}`);
             core.info(`Check run URL: ${resp.data.url}`);
             core.info(`Check run HTML: ${resp.data.html_url}`);
@@ -1855,11 +1883,13 @@ function getTestRunsReport(testRuns, options) {
         sections.push(` `);
     }
     if (testRuns.length > 0 || options.onlySummary) {
+        // We only care about failing tests in the results
         const tableData = testRuns
-            .filter(tr => tr.passed > 0 || tr.failed > 0 || tr.skipped > 0)
+            .filter(tr => tr.failed > 0 || tr.skipped > 0)
             .map(tr => {
             const time = (0, markdown_utils_1.formatTime)(tr.time);
-            const name = tr.path;
+            // Tidying up our long method names to only include the module and path
+            const name = tr.path.replace(/\/target\/surefire-reports\/.*magnolia_cms\./, '|');
             const passed = tr.passed > 0 ? `${tr.passed} ${markdown_utils_1.Icon.success}` : '';
             const failed = tr.failed > 0 ? `${tr.failed} ${markdown_utils_1.Icon.fail}` : '';
             const skipped = tr.skipped > 0 ? `${tr.skipped} ${markdown_utils_1.Icon.skip}` : '';
