@@ -150,11 +150,13 @@ function getTestRunsReport(testRuns: TestRunResult[], options: ReportOptions): s
   }
 
   if (testRuns.length > 0 || options.onlySummary) {
+    // We only care about failing tests in the results
     const tableData = testRuns
-      .filter(tr => tr.passed > 0 || tr.failed > 0 || tr.skipped > 0)
+      .filter(tr => tr.failed > 0 || tr.skipped > 0)
       .map(tr => {
         const time = formatTime(tr.time)
-        const name = tr.path
+        // Tidying up our long method names to only include the module and path
+        const name = tr.path.replace(/\/target\/surefire-reports\/.*magnolia_cms\./, '|')
         const passed = tr.passed > 0 ? `${tr.passed} ${Icon.success}` : ''
         const failed = tr.failed > 0 ? `${tr.failed} ${Icon.fail}` : ''
         const skipped = tr.skipped > 0 ? `${tr.skipped} ${Icon.skip}` : ''
