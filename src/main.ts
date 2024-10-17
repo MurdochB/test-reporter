@@ -175,6 +175,7 @@ class TestReporter {
       core.info(summary)
       await core.summary.addRaw(summary).write()
       
+      core.info('Adding comment to PR:')
       // from n-ryu:test-reporter
       const {pull_request} = github.context.payload
       if (pull_request !== undefined && pull_request !== null) {
