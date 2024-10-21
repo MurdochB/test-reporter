@@ -245,6 +245,7 @@ class TestReporter {
       })
 
       core.info('Adding comment to PR:')
+      const result_url = "\n[Check tests](" + resp.data.html_url + ")"
       // from n-ryu:test-reporter
       if (pull_request !== undefined && pull_request !== null) {
         core.info(`Looking for existing test summary`)
@@ -259,14 +260,14 @@ class TestReporter {
             ...github.context.repo,
             issue_number: pull_request.number,
             comment_id: targetId,
-            body: `# 🚀 TEST RESULT SUMMARY ${summary}`
+            body: `# 🚀 TEST RESULT SUMMARY ${summary} ${result_url}`
           })
         } else {
           core.info(`Attaching test summary as comment on pull-request`)
           await this.octokit.rest.issues.createComment({
             ...github.context.repo,
             issue_number: pull_request.number,
-            body: `# 🚀 TEST RESULT SUMMARY ${summary}`
+            body: `# 🚀 TEST RESULT SUMMARY ${summary} ${result_url}`
           })
         }
       }   
