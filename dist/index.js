@@ -370,6 +370,7 @@ class TestReporter {
             }
         }
         const { listSuites, listTests, onlySummary, useActionsSummary, badgeTitle } = this;
+        const { pull_request } = github.context.payload;
         let baseUrl = '';
         if (this.useActionsSummary) {
             const summary = (0, get_report_1.getReport)(results, { listSuites, listTests, baseUrl, onlySummary, useActionsSummary, badgeTitle });
@@ -379,7 +380,6 @@ class TestReporter {
             await core.summary.addRaw(summary).write();
             core.info('Adding comment to PR:');
             // from n-ryu:test-reporter
-            const { pull_request } = github.context.payload;
             if (pull_request !== undefined && pull_request !== null) {
                 core.info(`Looking for existing test summary`);
                 const commentList = await this.octokit.rest.issues.listComments({
@@ -441,6 +441,33 @@ class TestReporter {
                 },
                 ...github.context.repo
             });
+            core.info('Adding comment to PR:');
+            // from n-ryu:test-reporter
+            if (pull_request !== undefined && pull_request !== null) {
+                core.info(`Looking for existing test summary`);
+                const commentList = await this.octokit.rest.issues.listComments({
+                    ...github.context.repo,
+                    issue_number: pull_request.number
+                });
+                const targetId = commentList.data.find(el => el.body?.startsWith('# 🚀 TEST RESULT SUMMARY'))?.id;
+                if (targetId !== undefined) {
+                    core.info(`Updating test summary as comment on pull-request`);
+                    await this.octokit.rest.issues.updateComment({
+                        ...github.context.repo,
+                        issue_number: pull_request.number,
+                        comment_id: targetId,
+                        body: `# 🚀 TEST RESULT SUMMARY ${summary}`
+                    });
+                }
+                else {
+                    core.info(`Attaching test summary as comment on pull-request`);
+                    await this.octokit.rest.issues.createComment({
+                        ...github.context.repo,
+                        issue_number: pull_request.number,
+                        body: `# 🚀 TEST RESULT SUMMARY ${summary}`
+                    });
+                }
+            }
             core.info(`Check run create response: ${resp.status}`);
             core.info(`Check run URL: ${resp.data.url}`);
             core.info(`Check run HTML: ${resp.data.html_url}`);
