@@ -156,7 +156,7 @@ function getTestRunsReport(testRuns: TestRunResult[], options: ReportOptions): s
       .map(tr => {
         const time = formatTime(tr.time)
         // Tidying up our long method names to only include the module and path
-        const name = tr.path.replace(/\/target\/surefire-reports\/.*magnolia_cms\./, '|')
+        const name = tr.path.replace(/(\/target\/surefire-reports\/.*magnolia_cms\.)|(\/target\/failsafe-reports\/TEST-)/, '|')
         const passed = tr.passed > 0 ? `${tr.passed} ${Icon.success}` : ''
         const failed = tr.failed > 0 ? `${tr.failed} ${Icon.fail}` : ''
         const skipped = tr.skipped > 0 ? `${tr.skipped} ${Icon.skip}` : ''

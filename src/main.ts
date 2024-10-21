@@ -245,7 +245,7 @@ class TestReporter {
       })
 
       core.info('Adding comment to PR:')
-      const result_url = "\n[Check tests](" + resp.data.html_url + ")"
+      const result_url = "\n\n[See results](" + resp.data.html_url + ")"
       // from n-ryu:test-reporter
       if (pull_request !== undefined && pull_request !== null) {
         core.info(`Looking for existing test summary`)

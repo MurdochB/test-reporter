@@ -442,7 +442,7 @@ class TestReporter {
                 ...github.context.repo
             });
             core.info('Adding comment to PR:');
-            const result_url = "\n[Check tests](" + resp.data.html_url + ")";
+            const result_url = "\n\n[See results](" + resp.data.html_url + ")";
             // from n-ryu:test-reporter
             if (pull_request !== undefined && pull_request !== null) {
                 core.info(`Looking for existing test summary`);
@@ -1918,7 +1918,7 @@ function getTestRunsReport(testRuns, options) {
             .map(tr => {
             const time = (0, markdown_utils_1.formatTime)(tr.time);
             // Tidying up our long method names to only include the module and path
-            const name = tr.path.replace(/\/target\/surefire-reports\/.*magnolia_cms\./, '|');
+            const name = tr.path.replace(/(\/target\/surefire-reports\/.*magnolia_cms\.)|(\/target\/failsafe-reports\/TEST-)/, '|');
             const passed = tr.passed > 0 ? `${tr.passed} ${markdown_utils_1.Icon.success}` : '';
             const failed = tr.failed > 0 ? `${tr.failed} ${markdown_utils_1.Icon.fail}` : '';
             const skipped = tr.skipped > 0 ? `${tr.skipped} ${markdown_utils_1.Icon.skip}` : '';
